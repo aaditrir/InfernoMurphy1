@@ -8,36 +8,37 @@ import com.jumpypants.murphy.tasks.Task;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.MyRobot;
-import org.firstinspires.ftc.teamcode.subSystems.Arm;
 import org.firstinspires.ftc.teamcode.subSystems.Claw;
+import org.firstinspires.ftc.teamcode.subSystems.X_arm;
+import org.firstinspires.ftc.teamcode.subSystems.Z_arm;
 
 public class IntakingState implements State {
-    private final MyRobot robotContext;
+    private final MyRobot robot;
     private final Task mainTask;
 
-    public IntakingState(MyRobot robotContext) {
-        this.robotContext = robotContext;
+    public IntakingState(MyRobot robot) {
+        this.robot = robot;
 
-        mainTask = new SequentialTask(robotContext,
-                new GrabTask(robotContext),
-                new TransferTask(robotContext)
+        mainTask = new SequentialTask(robot,
+                new GrabTask(robot),
+                new TransferTask(robot)
         );
     }
 
     @Override
     public State step() {
-        // Drive the drivebase with gamepad1
-        Gamepad gamepad1 = robotContext.gamepad1;
-        robotContext.drive.driveRobotCentric(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        Gamepad gp = robot.gamepad1;
+        robot.drive.driveRobotCentric(gp.left_stick_x, gp.left_stick_y, gp.right_stick_x);
 
-        robotContext.arm.calculatePID();
+        // Update arm PID
+        robot.xarm.tickPID();
+        robot.zarm.tickPID();
 
-        // Run the main task until finished, then transition to OuttakingState
         if (mainTask.step()) {
             return this;
         }
 
-        return new OuttakingState(robotContext);
+        return new OuttakingState(robot);
     }
 
     @Override
@@ -45,39 +46,42 @@ public class IntakingState implements State {
         return "Intaking";
     }
 
+
     private static class GrabTask extends ParallelTask {
-        public GrabTask(MyRobot robotContext) {
-            super(robotContext, true,
-                    robotContext.claw.new ManualWristTask(robotContext),
-                    new WaitForTransferInputTask(robotContext)
+        public GrabTask(MyRobot robot) {
+            super(robot, true,
+                    new WaitForTransferInputTask(robot)
             );
         }
     }
 
     private static class WaitForTransferInputTask extends Task {
-        public WaitForTransferInputTask(MyRobot robotContext) {
-            super(robotContext);
+        public WaitForTransferInputTask(MyRobot robot) {
+            super(robot);
         }
 
         @Override
-        protected void initialize(RobotContext robotContext) {}
+        protected void initialize(RobotContext ctx) {}
 
         @Override
-        protected boolean run(RobotContext robotContext) {
-            return !robotContext.gamepad1.a;
+        protected boolean run(RobotContext ctx) {
+            return !((MyRobot) ctx).gamepad1.a; // Wait until gamepad1 'A' pressed
         }
     }
 
     private static class TransferTask extends SequentialTask {
-        public TransferTask(MyRobot robotContext) {
-            super(robotContext,
-                    robotContext.claw.new MoveClawTask(robotContext, Claw.CLAW_CLOSED_POSITION),
-                    new ParallelTask(robotContext, false,
-                            robotContext.arm.new MoveExtensionTask(robotContext, Arm.EXTENSION_OUTTAKING_POSITION),
-                            robotContext.arm.new MoveShoulderTask(robotContext, Arm.SHOULDER_OUTTAKING_POSITION),
-                            robotContext.claw.new MoveWristTask(robotContext, Claw.WRIST_UP_POSITION)
+        public TransferTask(MyRobot robot) {
+            super(robot,
+                    robot.claw.new MoveClawTask(robot, Claw.CLAW_CLOSED_POSITION),
+                    new ParallelTask(robot, false,
+                            robot.xarm.new MoveExtensionTask(robot, X_arm.EXTENSION_INTAKING_POSITION),
+                            robot.zarm.new MoveShoulderTask(robot, Z_arm.SHOULDER_INTAKING_POSITION),
+                            robot.claw.new MoveWristTask(robot, Claw.WRIST_MAX_POSITION)
                     )
             );
         }
     }
 }
+
+
+
