@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Claw {
 
-    public static final double CLAW_OPEN_POSITION = 0.7;
-    public static final double CLAW_CLOSED_POSITION = 0.45;
-    public static final double WRIST_MAX_POSITION = 0.7;
-    public static final double WRIST_MIN_POSITION = 0.2;
+    public static final double CLAW_OPEN_POSITION = 0.8;
+    public static final double CLAW_CLOSED_POSITION = -0.5;
+    public static final double WRIST_MAX_POSITION = 0.5;
+    public static final double WRIST_MIN_POSITION = 0.1;
 
     private final Servo clawServo;
     private final Servo wristServo;
