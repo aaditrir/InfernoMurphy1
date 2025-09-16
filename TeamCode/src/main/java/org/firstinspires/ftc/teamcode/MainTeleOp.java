@@ -11,11 +11,11 @@ import org.firstinspires.ftc.teamcode.subSystems.X_arm;
 import org.firstinspires.ftc.teamcode.subSystems.Z_arm;
 import org.firstinspires.ftc.teamcode.subSystems.Claw;
 
-@TeleOp(name="Murphy Example Tele-Op", group="Linear OpMode")
+@TeleOp(name="Murphy Example TeleOp", group="Linear OpMode")
 public class MainTeleOp extends OpMode {
 
     private StateMachine stateMachine;
-    private MyRobot robot;
+    private MyRobot robotContext;
 
     @Override
     public void init() {
@@ -31,18 +31,18 @@ public class MainTeleOp extends OpMode {
                 hardwareMap.get(Motor.class, "backRight")
         );
 
-        robot = new MyRobot(telemetry, gamepad1, gamepad2, drive, xarm, zarm, claw);
+        robotContext = new MyRobot(telemetry, gamepad1, gamepad2, drive, xarm, zarm, claw);
 
-        stateMachine = new StateMachine(new IntakingState(robot), robot);
+        stateMachine = new StateMachine(new IntakingState(robotContext), robotContext);
     }
 
     @Override
     public void loop() {
         stateMachine.step();
 
-        robot.telemetry.addData("X Arm Pos", robot.xarm.getCurrentPosition());
-        robot.telemetry.addData("Z Arm Pos", robot.zarm.getCurrentPosition());
-        robot.telemetry.update();
+        robotContext.telemetry.addData("X Arm Pos", robotContext.xarm.getCurrentPosition());
+        robotContext.telemetry.addData("Z Arm Pos", robotContext.zarm.getCurrentPosition());
+        robotContext.telemetry.update();
     }
 }
 

@@ -13,58 +13,59 @@ import org.firstinspires.ftc.teamcode.subSystems.X_arm;
 import org.firstinspires.ftc.teamcode.subSystems.Z_arm;
 
 public class OuttakingState implements State {
-    private final MyRobot robot;
+    private final MyRobot robotContext;
     private final Task mainTask;
 
-    public OuttakingState(MyRobot robot) {
-        this.robot = robot;
+    public OuttakingState(MyRobot robotContext) {
+        this.robotContext = robotContext;
 
-        mainTask = new SequentialTask(robot,
-                new WaitForDumpInputTask(robot),
-                robot.claw.new MoveClawTask(robot, Claw.CLAW_OPEN_POSITION),
-                new ParallelTask(robot, false,
-                        robot.claw.new MoveWristTask(robot, Claw.WRIST_MAX_POSITION),
-                        robot.xarm.new MoveExtensionTask(robot, X_arm.EXTENSION_OUTTAKING_POSITION),
-                        robot.zarm.new MoveShoulderTask(robot, Z_arm.SHOULDER_OUTTAKING_POSITION)
+        mainTask = new SequentialTask(robotContext,
+                new WaitForDumpInputTask(robotContext),
+                robotContext.claw.new MoveClawTask(robotContext, Claw.CLAW_CLOSED_POS),
+                new ParallelTask(robotContext, false,
+                        robotContext.claw.new MoveWristTask(robotContext, Claw.WRIST_MAX_POS),
+                        robotContext.xarm.new MoveExtensionTask(robotContext, X_arm.EXTENSION_OUTTAKING_POSITION),
+                        robotContext.zarm.new MoveZArmTask(robotContext, Z_arm.SHOULDER_OUTTAKING_POSITION)
                 )
         );
     }
 
     @Override
     public State step() {
-        Gamepad gp = robot.gamepad1;
-        robot.drive.driveRobotCentric(gp.left_stick_x, gp.left_stick_y, gp.right_stick_x);
+        Gamepad gamepad1 = robotContext.gamepad1;
+        robotContext.drive.driveRobotCentric(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         // Update arm PID
-        robot.xarm.tickPID();
-        robot.zarm.tickPID();
+        robotContext.zarm.tickPID();
+        robotContext.xarm.tickPID();
 
         if (mainTask.step()) {
             return this;
         }
 
-        return new IntakingState(robot);
-    }
-
-    @Override
-    public String getName() {
-        return "Outtaking";
+        return new IntakingState(robotContext);
     }
 
     private static class WaitForDumpInputTask extends Task {
-        public WaitForDumpInputTask(MyRobot robot) {
-            super(robot);
+        public WaitForDumpInputTask(MyRobot robotContext) {
+            super(robotContext);
         }
 
         @Override
-        protected void initialize(RobotContext ctx) {}
+        protected void initialize(RobotContext ctx) {
+        }
 
         @Override
         protected boolean run(RobotContext ctx) {
-            return !((MyRobot) ctx).gamepad2.a;
+            return !robotContext.gamepad2.a;
         }
     }
-}
+        @Override
+        public String getName() {
+            return "Outtaking";
+        }
+    }
+
 
 
 

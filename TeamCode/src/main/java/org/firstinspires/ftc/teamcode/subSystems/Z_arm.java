@@ -7,8 +7,8 @@ import com.jumpypants.murphy.tasks.Task;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Z_arm {
-    private final Motor shoulderMotor;
-    private final PIDController shoulderPID = new PIDController(0.015, 0, 0.003);
+    private final Motor slideMotor;
+    private final PIDController slidePID = new PIDController(0.015, 0, 0.003);
 
     public static final double SHOULDER_INTAKING_POSITION = 0.0;
     public static final double SHOULDER_OUTTAKING_POSITION = 1000;
@@ -16,30 +16,30 @@ public class Z_arm {
     private double targetPosition = SHOULDER_INTAKING_POSITION;
 
     public Z_arm(HardwareMap hardwareMap) {
-        shoulderMotor = new Motor(hardwareMap, "shoulderMotor");
-        shoulderMotor.setRunMode(Motor.RunMode.RawPower);
-        shoulderMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        shoulderMotor.resetEncoder();
+        slideMotor = new Motor(hardwareMap, "extentionMotor");
+        slideMotor.setRunMode(Motor.RunMode.RawPower);
+        slideMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        slideMotor.resetEncoder();
     }
     public double getCurrentPosition() {
-        return shoulderMotor.getCurrentPosition();
+        return slideMotor.getCurrentPosition();
     }
 
 
     public void tickPID() {
-        double currentPos = shoulderMotor.getCurrentPosition();
-        double power = shoulderPID.calculate(currentPos, targetPosition);
-        shoulderMotor.set(power);
+        double currentPos = slideMotor.getCurrentPosition();
+        double power = slidePID.calculate(currentPos, targetPosition);
+        slideMotor.set(power);
     }
 
     public void setPower(double power) {
-        shoulderMotor.set(power);
+        slideMotor.set(power);
     }
 
-    public class MoveShoulderTask extends Task {
+    public class MoveZArmTask extends Task {
         private final double taskTarget;
 
-        public MoveShoulderTask(RobotContext robotContext, double taskTarget) {
+        public MoveZArmTask(RobotContext robotContext, double taskTarget) {
             super(robotContext);
             this.taskTarget = taskTarget;
         }
@@ -47,12 +47,12 @@ public class Z_arm {
         @Override
         protected void initialize(RobotContext robotContext) {
             targetPosition = taskTarget;
-            shoulderPID.setSetPoint(taskTarget);
+            slidePID.setSetPoint(taskTarget);
         }
 
         @Override
         protected boolean run(RobotContext robotContext) {
-            double error = Math.abs(shoulderMotor.getCurrentPosition() - taskTarget);
+            double error = Math.abs(slideMotor.getCurrentPosition() - taskTarget);
             return error <= 5;
         }
     }
