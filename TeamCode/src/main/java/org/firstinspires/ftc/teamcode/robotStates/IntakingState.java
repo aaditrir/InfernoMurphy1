@@ -43,7 +43,7 @@ public class IntakingState implements State {
 
     @Override
     public String getName() {
-        return "Intaki ng";
+        return "Intaking";
     }
 
 
